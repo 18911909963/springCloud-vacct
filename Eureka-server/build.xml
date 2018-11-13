@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project xmlns:artifact="antlib:org.apache.maven.artifact.ant" name="Eureka-server" default="0 - default" basedir=".">
+	<description>ANT 编译</description>
+
+	<!-- BASE DIR  -->
+	<property name="BASE_DIR" value="F:/YLBANK/src" />
+	<!-- MAVEN 仓库  -->
+	<property name="M2_REPO" value="D:/repository" />
+	<!-- MAVEN SETTING  -->
+	<property name="M2_SETTING" value="D:/software/apache-maven-3.5.4/conf/settings.xml" />
+
+	<property name="version" value="1.0" />
+	<property name="project" value="Eureka-server" />
+
+	<!-- 最终编译打包的根目录 -->
+	<property name="dist.dir" location="E:/build/${project}" />
+	<!-- javac编译后生成的class文件路径 -->
+	<property name="build.dir" location="${dist.dir}/bin/classes" />
+
+	<!-- 项目配置文件路径 -->
+	<property name="resources.dir" location="resources" />
+	<property name="conf.dir" location="conf" />
+
+	<!-- maven-ant-tasks 下载maven依赖jar包的存放路径  -->
+	<property name="lib.dir" location="E:/build/libs" />
+
+	<path id="classpath">
+		<fileset dir="${lib.dir}" includes="**/*.jar" />
+	</path>
+
+	<target name="1 - clean" description="清理ant编译文件">
+		<echo>1. 清理编译文件</echo>
+		<delete dir="${build.dir}" />
+		<delete dir="${dist.dir}/conf" />
+		<delete dir="${dist.dir}/${project}.${version}.jar" />
+	</target>
+
+	<target name="2 - makedir" description="建立文件夹">
+		<echo>2. 建立文件夹</echo>
+		<mkdir dir="${dist.dir}" />
+		<mkdir dir="${build.dir}" />
+		<mkdir dir="${lib.dir}" />
+	</target>
+
+	<target name="3 - dependency" depends="2 - makedir" description="配置 ant 自动下载maven的依赖包 end ">
+		<echo>3. 下载maven依赖 </echo>
+		<path id="maven-ant-tasks.classpath" path="${M2_REPO}/org/apache/maven/maven-ant-tasks/2.1.3/maven-ant-tasks-2.1.3.jar" />
+		<typedef resource="org/apache/maven/artifact/ant/antlib.xml" uri="antlib:org.apache.maven.artifact.ant" classpathref="maven-ant-tasks.classpath" />
+
+		<artifact:dependencies filesetId="mavenlib" pathId="mavenclasspath" settingsFile="${M2_SETTING}" useScope="runtime">
+			<pom file="pom.xml" />
+		</artifact:dependencies>
+
+		<copy todir="${lib.dir}">
+			<fileset refid="mavenlib" />
+			<mapper type="flatten" />
+		</copy>
+
+		<copy todir="${dist.dir}">
+			<fileset dir="${BASE_DIR}/${project}/script" includes="**/*.sh" />
+		</copy>
+
+		<copy todir="${dist.dir}">
+			<fileset dir="${BASE_DIR}/${project}/resources" includes="**/*.yml" />
+		</copy>
+	</target>
+
+	<target name="4 - compile" depends="3 - dependency" description="编译代码">
+		<echo>4. 编译Java代码 </echo>
+		<javac destdir="${build.dir}" encoding="UTF-8" includeantruntime="no" excludes="**/*.svn,*.svn" includes="**/*.java" source="1.8" target="1.8" deprecation="true" failonerror="true" debug="on">
+			<classpath refid="classpath" />
+			<src path="src/main/java" />
+			<src path="resources" />
+		</javac>
+		<copy todir="${build.dir}">
+			<fileset dir="${BASE_DIR}/${project}/resources" includes="**/*" />
+		</copy>
+	</target>
+
+	<target name="5 - package" depends="4 - compile" description="打可执行jar包">
+		<echo> 5.打可执行jar包 </echo>
+		<mkdir dir="${dist.dir}" />
+		<tstamp>
+			<format property="TODAY" pattern="yyyy-MM-dd HH:mm:ss" />
+			<format property="TIME" pattern="yyMMddHHmm" />
+		</tstamp>
+
+		<jar destfile="${dist.dir}/${project}.${version}.jar">
+			<manifest>
+				<attribute name="Main-Class" value="com.kayak.eurekaserver.EurekaServer" />
+				<attribute name="Class-Path" value=". ../libs/spring-cloud-starter-netflix-eureka-server-2.0.0.M8.jar ../libs/spring-cloud-starter-2.0.0.M9.jar ../libs/spring-cloud-context-2.0.0.M9.jar ../libs/spring-security-crypto-5.0.5.RELEASE.jar ../libs/spring-cloud-commons-2.0.0.M9.jar ../libs/httpclient-4.5.5.jar ../libs/httpcore-4.4.9.jar ../libs/commons-codec-1.11.jar ../libs/spring-security-rsa-1.0.5.RELEASE.jar ../libs/bcpkix-jdk15on-1.56.jar ../libs/bcprov-jdk15on-1.56.jar ../libs/spring-cloud-netflix-eureka-server-2.0.0.M8.jar ../libs/spring-boot-starter-web-2.0.2.RELEASE.jar ../libs/spring-boot-starter-json-2.0.2.RELEASE.jar ../libs/jackson-datatype-jdk8-2.9.3.jar ../libs/jackson-datatype-jsr310-2.9.3.jar ../libs/jackson-module-parameter-names-2.9.3.jar ../libs/spring-boot-starter-tomcat-2.0.2.RELEASE.jar ../libs/tomcat-embed-core-8.5.31.jar ../libs/tomcat-embed-el-8.5.31.jar ../libs/tomcat-embed-websocket-8.5.31.jar ../libs/hibernate-validator-6.0.9.Final.jar ../libs/validation-api-2.0.1.Final.jar ../libs/jboss-logging-3.3.2.Final.jar ../libs/classmate-1.3.4.jar ../libs/spring-web-5.0.6.RELEASE.jar ../libs/spring-beans-5.0.6.RELEASE.jar ../libs/spring-webmvc-5.0.6.RELEASE.jar ../libs/spring-aop-5.0.6.RELEASE.jar ../libs/spring-expression-5.0.6.RELEASE.jar ../libs/spring-boot-starter-actuator-2.0.2.RELEASE.jar ../libs/spring-boot-actuator-autoconfigure-2.0.2.RELEASE.jar ../libs/spring-boot-actuator-2.0.2.RELEASE.jar ../libs/micrometer-core-1.0.4.jar ../libs/HdrHistogram-2.1.10.jar ../libs/LatencyUtils-2.0.3.jar ../libs/spring-boot-starter-freemarker-2.0.2.RELEASE.jar ../libs/freemarker-2.3.28.jar ../libs/spring-context-support-5.0.6.RELEASE.jar ../libs/spring-cloud-netflix-core-2.0.0.M8.jar ../libs/spring-boot-starter-aop-2.0.2.RELEASE.jar ../libs/aspectjweaver-1.8.13.jar ../libs/spring-cloud-netflix-eureka-client-2.0.0.M8.jar ../libs/eureka-client-1.8.7.jar ../libs/jettison-1.3.7.jar ../libs/stax-api-1.0.1.jar ../libs/netflix-eventbus-0.3.0.jar ../libs/netflix-infix-0.3.0.jar ../libs/commons-jxpath-1.3.jar ../libs/joda-time-2.9.9.jar ../libs/antlr-runtime-3.4.jar ../libs/stringtemplate-3.2.1.jar ../libs/antlr-2.7.7.jar ../libs/gson-2.8.4.jar ../libs/commons-math-2.2.jar ../libs/jsr311-api-1.1.1.jar ../libs/servo-core-0.10.1.jar ../libs/servo-internal-0.10.1.jar ../libs/jersey-core-1.19.1.jar ../libs/jersey-client-1.19.1.jar ../libs/jersey-apache-client4-1.19.1.jar ../libs/guice-4.1.0.jar ../libs/aopalliance-1.0.jar ../libs/compactmap-1.2.1.jar ../libs/dexx-collections-0.2.jar ../libs/jersey-servlet-1.19.1.jar ../libs/jersey-server-1.19.1.jar ../libs/eureka-core-1.8.7.jar ../libs/woodstox-core-asl-4.4.1.jar ../libs/stax-api-1.0-2.jar ../libs/archaius-core-0.7.5.jar ../libs/jsr305-3.0.1.jar ../libs/javax.inject-1.jar ../libs/jackson-dataformat-xml-2.9.3.jar ../libs/jackson-module-jaxb-annotations-2.9.3.jar ../libs/stax2-api-3.1.4.jar ../libs/woodstox-core-5.0.3.jar ../libs/xstream-1.4.10.jar ../libs/xmlpull-1.1.3.1.jar ../libs/xpp3_min-1.1.4c.jar ../libs/spring-cloud-starter-netflix-archaius-2.0.0.M8.jar ../libs/spring-cloud-netflix-ribbon-2.0.0.M8.jar ../libs/spring-cloud-netflix-archaius-2.0.0.M8.jar ../libs/commons-configuration-1.8.jar ../libs/commons-lang-2.6.jar ../libs/jackson-annotations-2.9.0.jar ../libs/jackson-core-2.9.3.jar ../libs/jackson-databind-2.9.3.jar ../libs/guava-18.0.jar ../libs/spring-cloud-starter-netflix-ribbon-2.0.0.M8.jar ../libs/ribbon-2.2.5.jar ../libs/ribbon-transport-2.2.5.jar ../libs/rxnetty-contexts-0.4.9.jar ../libs/rxnetty-servo-0.4.9.jar ../libs/hystrix-core-1.5.12.jar ../libs/rxnetty-0.4.9.jar ../libs/netty-codec-http-4.1.24.Final.jar ../libs/netty-codec-4.1.24.Final.jar ../libs/netty-transport-native-epoll-4.1.24.Final.jar ../libs/netty-common-4.1.24.Final.jar ../libs/netty-buffer-4.1.24.Final.jar ../libs/netty-transport-native-unix-common-4.1.24.Final.jar ../libs/netty-transport-4.1.24.Final.jar ../libs/netty-resolver-4.1.24.Final.jar ../libs/ribbon-core-2.2.5.jar ../libs/ribbon-httpclient-2.2.5.jar ../libs/commons-collections-3.2.2.jar ../libs/netflix-commons-util-0.1.1.jar ../libs/ribbon-loadbalancer-2.2.5.jar ../libs/netflix-statistics-0.1.1.jar ../libs/rxjava-1.3.8.jar ../libs/ribbon-eureka-2.2.5.jar ../libs/slf4j-api-1.7.25.jar ../libs/spring-boot-starter-2.0.2.RELEASE.jar ../libs/spring-boot-2.0.2.RELEASE.jar ../libs/spring-context-5.0.6.RELEASE.jar ../libs/spring-boot-autoconfigure-2.0.2.RELEASE.jar ../libs/spring-boot-starter-logging-2.0.2.RELEASE.jar ../libs/logback-classic-1.2.3.jar ../libs/logback-core-1.2.3.jar ../libs/log4j-to-slf4j-2.6.2.jar ../libs/log4j-api-2.6.2.jar ../libs/jul-to-slf4j-1.7.25.jar ../libs/javax.annotation-api-1.3.2.jar ../libs/snakeyaml-1.19.jar ../libs/spring-core-5.0.6.RELEASE.jar ../libs/spring-jcl-5.0.6.RELEASE.jar" />
+			</manifest>
+			<fileset dir="${build.dir}" />
+		</jar>
+
+	</target>
+
+	<target name="0 - default" depends="1 - clean, 5 - package">
+		<echo>清理编译文件</echo>
+		<delete dir="${dist.dir}/bin" />
+		<delete dir="${dist.dir}/lib" />
+	</target>
+
+</project>

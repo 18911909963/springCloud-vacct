@@ -1,0 +1,16 @@
+spring: 
+  application: 
+    name: EurekaServer
+server:
+  port: 9001                         # 指定该Eureka实例的端口
+eureka:
+  server:
+     enable-self-preservation: false
+     eviction-interval-timer-in-ms: 3000
+  instance:
+     preferIpAddress: true
+  client:
+    registerWithEureka: false       #表示是否将自己注册到Eureka
+    fetchRegistry: false             #是否从Eureka Server获取注册信息，如果多节点则为true,可同步其它节点信息
+    serviceUrl:
+      defaultZone: http://localhost:9001/eureka/    #与Eureka Server交互的地址，查询服务和注册服务都依赖这个URL，多个地址使用,分隔
